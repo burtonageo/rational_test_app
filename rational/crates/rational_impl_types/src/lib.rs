@@ -3,7 +3,7 @@
 use core::fmt;
 
 #[repr(C)]
-#[derive(Clone, Copy, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy)]
 pub struct Rational {
     pub numerator: u64,
     pub denominator: u64,

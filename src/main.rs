@@ -10,8 +10,7 @@ fn main() {
     rational::normalize(&mut rat2);
     println!("rat2 = {:?}", rat2);
 
-    let mut result = rational::add(&rat1, &rat2);
-    rational::normalize(&mut result);
+    let result = rational::add(&rat1, &rat2);
 
     println!("{:?} + {:?} = {:?}", rat1, rat2, result);
 }
