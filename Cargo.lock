@@ -9,13 +9,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
-name = "dylib_test"
-version = "0.1.0"
-dependencies = [
- "rational",
-]
-
-[[package]]
 name = "rational"
 version = "0.1.0"
 dependencies = [
@@ -26,3 +19,10 @@ dependencies = [
 [[package]]
 name = "rational_impl_types"
 version = "0.1.0"
+
+[[package]]
+name = "rational_test_app"
+version = "0.1.0"
+dependencies = [
+ "rational",
+]
