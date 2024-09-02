@@ -3,6 +3,7 @@ name = "rational_test_app"
 version = "0.1.0"
 edition = "2021"
 license-file = "LICENSE.md"
+readme = "Readme.md"
 
 [profile.release]
 strip = "symbols"
