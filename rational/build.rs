@@ -17,7 +17,11 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
         .map_err(Box::<dyn Error + Send + Sync + 'static>::from)
         .and_then(|output| {
             if !output.status.success() {
-                return Err(From::from("cargo locate-project failed"));
+                let msg = format!(
+                    "cargo locate-project failed: {}",
+                    String::from_utf8_lossy(&output.stderr),
+                );
+                return Err(From::from(msg));
             }
 
             let mut stdout = output.stdout;
