@@ -1,0 +1,20 @@
+[package]
+name = "rational"
+version = "0.1.0"
+edition = "2021"
+build = "build.rs"
+
+[dependencies.rational_impl_types]
+path = "./crates/rational_impl_types"
+
+[build-dependencies]
+cfg-if = "1"
+
+[workspace]
+members = [
+    "crates/rational_impl",
+    "crates/rational_impl_types",
+]
+
+[features]
+link_static = []

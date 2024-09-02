@@ -1,0 +1,16 @@
+[package]
+name = "dylib_test"
+version = "0.1.0"
+edition = "2021"
+license-file = "LICENSE.md"
+
+[profile.release]
+strip = "symbols"
+lto = "thin"
+
+[dependencies.rational]
+path = "./rational"
+
+[features]
+default = ["link_static"]
+link_static = ["rational/link_static"]
