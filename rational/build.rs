@@ -9,7 +9,8 @@ use std::{
 };
 
 fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
-    let workspace_root = Command::new(env!("CARGO"))
+    let cargo = env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
+    let workspace_root = Command::new(&cargo)
         .arg("locate-project")
         .arg("--workspace")
         .arg("--message-format=plain")
@@ -47,11 +48,9 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
 
     let crate_name = "rational_impl";
 
-    let cargo = env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
-    let profile = env::var("PROFILE").unwrap_or_default();
+    let profile = env::var("PROFILE").unwrap_or_else(|_| "debug".to_string());
 
     let crate_dir = workspace_root.join("crates").join(crate_name);
-
     rerun_cargo_if_dir_changed(&crate_dir)?;
 
     let mut out_dir = env::var("OUT_DIR")
@@ -65,7 +64,8 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
         .env("CARGO_BUILD_TARGET_DIR", &out_dir)
         .current_dir(&crate_dir);
 
-    if env::var("CARGO_FEATURE_LINK_STATIC").is_ok() {
+    let link_static = env::var("CARGO_FEATURE_LINK_STATIC").is_ok();
+    if link_static {
         cargo_build.args(&["--features", "link_static"]);
     }
 
@@ -90,7 +90,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
         return Err(From::from(String::from_utf8_lossy(&output.stderr)));
     }
 
-    let crate_type = if cfg!(feature = "link_static") {
+    let crate_type = if link_static {
         "static"
     } else {
         "dylib"
@@ -105,16 +105,16 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     Ok(())
 }
 
-fn make_osstring(stdout: Vec<u8>) -> Result<OsString, Box<dyn Error + Send + Sync + 'static>> {
+fn make_osstring(bytes: Vec<u8>) -> Result<OsString, Box<dyn Error + Send + Sync + 'static>> {
     cfg_if! {
         if #[cfg(unix)] {
             use std::os::unix::ffi::OsStringExt;
-            Ok(OsString::from_vec(stdout))
+            Ok(OsString::from_vec(bytes))
         } else if #[cfg(target_os = "wasi")] {
             use std::os::wasi::ffi::OsStringExt;
-            Ok(OsString::from_vec(output))
+            Ok(OsString::from_vec(bytes))
         } else {
-            let s = String::from_utf8(stdout)?;
+            let s = String::from_utf8(bytes)?;
             Ok(From::from(s))
         }
     }
@@ -124,8 +124,7 @@ fn make_osstring(stdout: Vec<u8>) -> Result<OsString, Box<dyn Error + Send + Syn
 fn rerun_cargo_if_dir_changed<P: ?Sized + AsRef<Path>>(path: &P) -> io::Result<()> {
     fn inner(path: &Path) -> io::Result<()> {
         for item in fs::read_dir(path)? {
-            let item = item?;
-            let path = item.path();
+            let path = item?.path();
             if path.is_dir() {
                 rerun_cargo_if_dir_changed(&path)?;
             } else {
