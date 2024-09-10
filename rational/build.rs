@@ -9,7 +9,7 @@ use std::{
 };
 
 fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
-    let cargo = env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
+    let cargo = env!("CARGO");
     let workspace_root = Command::new(&cargo)
         .arg("locate-project")
         .arg("--workspace")
@@ -34,11 +34,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
                 stdout.pop(); // probably a trailing '\n', pop it
             }
 
-            let mut wspace_root = {
-                let s = make_osstring(stdout)?;
-                PathBuf::from(s)
-            };
-
+            let mut wspace_root = make_osstring(stdout).map(PathBuf::from)?;
             if !wspace_root.is_dir() {
                 wspace_root.pop(); // pop the "Cargo.toml"
             }
@@ -105,6 +101,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     Ok(())
 }
 
+#[inline]
 fn make_osstring(bytes: Vec<u8>) -> Result<OsString, Box<dyn Error + Send + Sync + 'static>> {
     cfg_if! {
         if #[cfg(unix)] {
@@ -114,8 +111,7 @@ fn make_osstring(bytes: Vec<u8>) -> Result<OsString, Box<dyn Error + Send + Sync
             use std::os::wasi::ffi::OsStringExt;
             Ok(OsString::from_vec(bytes))
         } else {
-            let s = String::from_utf8(bytes)?;
-            Ok(From::from(s))
+            String::from_utf8(bytes).map(OsString::from).map_err(From::from)
         }
     }
 }
