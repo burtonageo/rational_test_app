@@ -46,7 +46,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     let profile = env::var("PROFILE").unwrap_or_else(|_| "debug".to_string());
 
     let crate_dir = workspace_root.join("crates").join(crate_name);
-    rerun_cargo_if_dir_changed(&crate_dir)?;
+    rerun_cargo_if_changed(&crate_dir)?;
 
     let mut out_dir = env::var("OUT_DIR")
         .map(PathBuf::from)
@@ -116,15 +116,16 @@ fn make_osstring(bytes: Vec<u8>) -> Result<OsString, Box<dyn Error + Send + Sync
 }
 
 #[inline]
-fn rerun_cargo_if_dir_changed<P: ?Sized + AsRef<Path>>(path: &P) -> io::Result<()> {
+fn rerun_cargo_if_changed<P: ?Sized + AsRef<Path>>(path: &P) -> io::Result<()> {
     fn inner(path: &Path) -> io::Result<()> {
+        if !path.is_dir() {
+            println!("cargo:rerun-if-changed={}", path.display());
+            return Ok(());
+        }
+
         for item in fs::read_dir(path)? {
             let path = item?.path();
-            if path.is_dir() {
-                rerun_cargo_if_dir_changed(&path)?;
-            } else {
-                println!("cargo:rerun-if-changed={}", path.display());
-            }
+            inner(&path)?;
         }
 
         Ok(())
