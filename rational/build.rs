@@ -12,7 +12,6 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     let cargo = env!("CARGO");
     let workspace_root = Command::new(&cargo)
         .arg("locate-project")
-        .arg("--workspace")
         .arg("--message-format=plain")
         .output()
         .map_err(Box::<dyn Error + Send + Sync + 'static>::from)
