@@ -1,7 +1,7 @@
 use rational_impl_types::Rational;
 use std::{mem, ptr::NonNull, str::FromStr};
 
-#[export_name = "rational_impl_is_dynamically_linked"]
+#[unsafe(export_name = "rational_impl_is_dynamically_linked")]
 pub unsafe extern "C" fn is_dynamically_linked() -> i32 {
     if cfg!(feature = "link_static") {
         0
@@ -10,26 +10,43 @@ pub unsafe extern "C" fn is_dynamically_linked() -> i32 {
     }
 }
 
-#[export_name = "rational_impl_get_version"]
+#[unsafe(export_name = "rational_impl_get_version")]
 pub unsafe extern "C" fn get_version(major: *mut i32, minor: *mut i32, patch: *mut i32) {
-    let maj = i32::from_str(env!("CARGO_PKG_VERSION_MAJOR")).unwrap_or_default();
-    let min = i32::from_str(env!("CARGO_PKG_VERSION_MINOR")).unwrap_or_default();
-    let pat = i32::from_str(env!("CARGO_PKG_VERSION_PATCH")).unwrap_or_default();
+    macro_rules! get_version_component {
+        ($version_var:expr) => {
+            const {
+                match i32::from_str_radix(env!($version_var), 10) {
+                    Ok(value) => value,
+                    Err(_) => 0,
+                }
+            }
+        };
+    }
+
+    let maj = get_version_component!("CARGO_PKG_VERSION_MAJOR");
+    let min = get_version_component!("CARGO_PKG_VERSION_MINOR");
+    let pat = get_version_component!("CARGO_PKG_VERSION_PATCH");
 
     if let Some(mut major) = NonNull::new(major) {
-        *(major.as_mut()) = maj;
+        unsafe {
+            major.write(maj);
+        }
     }
 
     if let Some(mut minor) = NonNull::new(minor) {
-        *(minor.as_mut()) = min;
+        unsafe {
+            minor.write(min);
+        }
     }
 
     if let Some(mut patch) = NonNull::new(patch) {
-        *(patch.as_mut()) = pat;
+        unsafe {
+            patch.write(pat);
+        }
     }
 }
 
-#[export_name = "rational_impl_add_rationals"]
+#[unsafe(export_name = "rational_impl_add_rationals")]
 pub unsafe extern "C" fn add_rationals(rat1: *const Rational, rat2: *const Rational) -> Rational {
     let mut rat1 = unsafe { unwrap_rational_ptr(rat1) };
     let mut rat2 = unsafe { unwrap_rational_ptr(rat2) };
@@ -51,7 +68,7 @@ pub unsafe extern "C" fn add_rationals(rat1: *const Rational, rat2: *const Ratio
     ret
 }
 
-#[export_name = "rational_impl_normalize_rational"]
+#[unsafe(export_name = "rational_impl_normalize_rational")]
 pub unsafe extern "C" fn normalize_rational(rat: *mut Rational) {
     if let Some(mut rational) = NonNull::new(rat) {
         normalize_one(rational.as_mut());

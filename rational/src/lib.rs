@@ -7,7 +7,7 @@
 pub use rational_impl_types::Rational;
 
 #[link(name = "rational_impl")]
-extern "C" {
+unsafe extern "C" {
     fn rational_impl_get_version(major: *mut i32, minor: *mut i32, patch: *mut i32);
     fn rational_impl_add_rationals(_: *const Rational, _: *const Rational) -> Rational;
     fn rational_impl_is_dynamically_linked() -> i32;
