@@ -7,9 +7,6 @@ build = "build.rs"
 [dependencies.rational_impl_types]
 path = "./crates/rational_impl_types"
 
-[build-dependencies]
-cfg-if = "1"
-
 [workspace]
 members = [
     "crates/rational_impl",

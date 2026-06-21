@@ -1,4 +1,3 @@
-use cfg_if::cfg_if;
 use std::{
     env,
     error::Error,
@@ -102,14 +101,16 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
 
 #[inline]
 fn make_osstring(bytes: Vec<u8>) -> Result<OsString, Box<dyn Error + Send + Sync + 'static>> {
-    cfg_if! {
-        if #[cfg(unix)] {
+    std::cfg_select! {
+        unix => {
             use std::os::unix::ffi::OsStringExt;
             Ok(OsString::from_vec(bytes))
-        } else if #[cfg(target_os = "wasi")] {
+        }
+        target_os = "wasi" => {
             use std::os::wasi::ffi::OsStringExt;
             Ok(OsString::from_vec(bytes))
-        } else {
+        }
+        _ => {
             String::from_utf8(bytes).map(OsString::from).map_err(From::from)
         }
     }
