@@ -24,12 +24,8 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
             }
 
             let mut stdout = output.stdout;
-            if stdout
-                .last()
-                .map(|ch| ch.is_ascii_whitespace())
-                .unwrap_or_default()
-            {
-                stdout.pop(); // probably a trailing '\n', pop it
+            while stdout.last().is_some_and(u8::is_ascii_whitespace) {
+                stdout.pop(); // Pop all trailing whitespace
             }
 
             let mut wspace_root = make_osstring(stdout).map(PathBuf::from)?;
